@@ -14,12 +14,8 @@
   ~ limitations under the License.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.github.nisrulz.sensey">
+<manifest package="com.github.nisrulz.sensey">
 
-  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-
-  <application>
-  </application>
+    <application></application>
 
 </manifest>
