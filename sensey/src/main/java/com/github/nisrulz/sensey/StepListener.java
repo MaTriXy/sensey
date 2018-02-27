@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package com.github.nisrulz.senseysample;
+package com.github.nisrulz.sensey;
 
-interface RPResultListener {
+/**
+ * The interface Step listener.
+ */
+public interface StepListener {
 
-    void onPermissionDenied();
-
-    void onPermissionGranted();
+    /**
+     * Step information.
+     *
+     * @param noOfSteps the no of steps
+     */
+    void stepInformation(int noOfSteps, float distanceInMeter, int stepActivityType);
 }

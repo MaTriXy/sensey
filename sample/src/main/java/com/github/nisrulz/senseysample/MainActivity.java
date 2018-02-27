@@ -16,19 +16,6 @@
 
 package com.github.nisrulz.senseysample;
 
-import static com.github.nisrulz.sensey.ChopDetector.ChopListener;
-import static com.github.nisrulz.sensey.FlipDetector.FlipListener;
-import static com.github.nisrulz.sensey.LightDetector.LightListener;
-import static com.github.nisrulz.sensey.MovementDetector.MovementListener;
-import static com.github.nisrulz.sensey.OrientationDetector.OrientationListener;
-import static com.github.nisrulz.sensey.ProximityDetector.ProximityListener;
-import static com.github.nisrulz.sensey.RotationAngleDetector.RotationAngleListener;
-import static com.github.nisrulz.sensey.ShakeDetector.ShakeListener;
-import static com.github.nisrulz.sensey.SoundLevelDetector.SoundLevelListener;
-import static com.github.nisrulz.sensey.TiltDirectionDetector.TiltDirectionListener;
-import static com.github.nisrulz.sensey.WaveDetector.WaveListener;
-import static com.github.nisrulz.sensey.WristTwistDetector.WristTwistListener;
-
 import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -43,8 +30,24 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.TextView;
+import com.github.nisrulz.sensey.ChopDetector.ChopListener;
+import com.github.nisrulz.sensey.FlipDetector.FlipListener;
+import com.github.nisrulz.sensey.LightDetector.LightListener;
+import com.github.nisrulz.sensey.MovementDetector.MovementListener;
+import com.github.nisrulz.sensey.OrientationDetector.OrientationListener;
+import com.github.nisrulz.sensey.PickupDeviceDetector.PickupDeviceListener;
+import com.github.nisrulz.sensey.ProximityDetector.ProximityListener;
+import com.github.nisrulz.sensey.RotationAngleDetector.RotationAngleListener;
+import com.github.nisrulz.sensey.ScoopDetector.ScoopListener;
 import com.github.nisrulz.sensey.Sensey;
+import com.github.nisrulz.sensey.ShakeDetector.ShakeListener;
+import com.github.nisrulz.sensey.SoundLevelDetector.SoundLevelListener;
+import com.github.nisrulz.sensey.StepDetectorUtil;
+import com.github.nisrulz.sensey.StepListener;
 import com.github.nisrulz.sensey.TiltDirectionDetector;
+import com.github.nisrulz.sensey.TiltDirectionDetector.TiltDirectionListener;
+import com.github.nisrulz.sensey.WaveDetector.WaveListener;
+import com.github.nisrulz.sensey.WristTwistDetector.WristTwistListener;
 import java.text.DecimalFormat;
 
 /**
@@ -53,7 +56,8 @@ import java.text.DecimalFormat;
 public class MainActivity extends AppCompatActivity
         implements OnCheckedChangeListener, ShakeListener, FlipListener, LightListener,
         OrientationListener, ProximityListener, WaveListener, SoundLevelListener, MovementListener,
-        ChopListener, WristTwistListener, RotationAngleListener, TiltDirectionListener {
+        ChopListener, WristTwistListener, RotationAngleListener, TiltDirectionListener, StepListener,
+        ScoopListener, PickupDeviceListener {
 
     private static final String LOGTAG = "MainActivity";
 
@@ -61,13 +65,169 @@ public class MainActivity extends AppCompatActivity
 
     private static final boolean DEBUG = true;
 
+    boolean hasRecordAudioPermission = false;
+
     private Handler handler;
 
-    private SwitchCompat swt1, swt2, swt3, swt4, swt5, swt6, swt7, swt8, swt9, swt10, swt11, swt12;
+    private SwitchCompat swt1, swt2, swt3, swt4, swt5, swt6, swt7, swt8, swt9, swt10, swt11, swt12,
+            swt13, swt14, swt15;
 
     private TextView txtViewResult;
 
-    boolean hasRecordAudioPermission = false;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        hasRecordAudioPermission = RuntimePermissionUtil.checkPermissonGranted(this, recordAudioPermission);
+
+        // Init Sensey
+        Sensey.getInstance().init(this);
+
+        // Init UI controls,views and handler
+        handler = new Handler();
+        txtViewResult = findViewById(R.id.textView_result);
+
+        swt1 = findViewById(R.id.Switch1);
+        swt1.setOnCheckedChangeListener(this);
+        swt1.setChecked(false);
+
+        swt2 = findViewById(R.id.Switch2);
+        swt2.setOnCheckedChangeListener(this);
+        swt2.setChecked(false);
+
+        swt3 = findViewById(R.id.Switch3);
+        swt3.setOnCheckedChangeListener(this);
+        swt3.setChecked(false);
+
+        swt4 = findViewById(R.id.Switch4);
+        swt4.setOnCheckedChangeListener(this);
+        swt4.setChecked(false);
+
+        swt5 = findViewById(R.id.Switch5);
+        swt5.setOnCheckedChangeListener(this);
+        swt5.setChecked(false);
+
+        swt6 = findViewById(R.id.Switch6);
+        swt6.setOnCheckedChangeListener(this);
+        swt6.setChecked(false);
+
+        swt7 = findViewById(R.id.Switch7);
+        swt7.setOnCheckedChangeListener(this);
+        swt7.setChecked(false);
+
+        swt8 = findViewById(R.id.Switch8);
+        swt8.setOnCheckedChangeListener(this);
+        swt8.setChecked(false);
+
+        swt9 = findViewById(R.id.Switch9);
+        swt9.setOnCheckedChangeListener(this);
+        swt9.setChecked(false);
+
+        swt10 = findViewById(R.id.Switch10);
+        swt10.setOnCheckedChangeListener(this);
+        swt10.setChecked(false);
+
+        swt11 = findViewById(R.id.Switch11);
+        swt11.setOnCheckedChangeListener(this);
+        swt11.setChecked(false);
+
+        swt12 = findViewById(R.id.Switch12);
+        swt12.setOnCheckedChangeListener(this);
+        swt12.setChecked(false);
+
+        swt13 = (SwitchCompat) findViewById(R.id.Switch13);
+        swt13.setOnCheckedChangeListener(this);
+        swt13.setChecked(false);
+
+        swt14 = (SwitchCompat) findViewById(R.id.Switch14);
+        swt14.setOnCheckedChangeListener(this);
+        swt14.setChecked(false);
+
+        swt15 = (SwitchCompat) findViewById(R.id.Switch15);
+        swt15.setOnCheckedChangeListener(this);
+        swt15.setChecked(false);
+
+        Button btnTouchEvent = findViewById(R.id.btn_touchevent);
+        btnTouchEvent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, TouchActivity.class));
+            }
+        });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // Stop Detections
+        Sensey.getInstance().stopShakeDetection(this);
+        Sensey.getInstance().stopFlipDetection(this);
+        Sensey.getInstance().stopOrientationDetection(this);
+        Sensey.getInstance().stopProximityDetection(this);
+        Sensey.getInstance().stopLightDetection(this);
+        Sensey.getInstance().stopWaveDetection(this);
+        Sensey.getInstance().stopSoundLevelDetection();
+        Sensey.getInstance().stopMovementDetection(this);
+        Sensey.getInstance().stopChopDetection(this);
+        Sensey.getInstance().stopWristTwistDetection(this);
+        Sensey.getInstance().stopRotationAngleDetection(this);
+        Sensey.getInstance().stopTiltDirectionDetection(this);
+        Sensey.getInstance().stopStepDetection(this);
+        Sensey.getInstance().stopPickupDeviceDetection(this);
+        Sensey.getInstance().stopScoopDetection(this);
+
+        // Set the all switches to off position
+        swt1.setChecked(false);
+        swt2.setChecked(false);
+        swt3.setChecked(false);
+        swt4.setChecked(false);
+        swt5.setChecked(false);
+        swt6.setChecked(false);
+        swt7.setChecked(false);
+        swt8.setChecked(false);
+        swt9.setChecked(false);
+        swt10.setChecked(false);
+        swt11.setChecked(false);
+        swt12.setChecked(false);
+        swt13.setChecked(false);
+        swt14.setChecked(false);
+        swt15.setChecked(false);
+
+        // Reset the result view
+        resetResultInView(txtViewResult);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // *** IMPORTANT ***
+        // Stop Sensey and release the context held by it
+        Sensey.getInstance().stop();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull final String[] permissions,
+            @NonNull final int[] grantResults) {
+        if (requestCode == 100) {
+            RuntimePermissionUtil.onRequestPermissionsResult(grantResults, new RPResultListener() {
+                @Override
+                public void onPermissionDenied() {
+                    // do nothing
+                }
+
+                @Override
+                public void onPermissionGranted() {
+                    if (RuntimePermissionUtil.checkPermissonGranted(MainActivity.this, recordAudioPermission)) {
+                        hasRecordAudioPermission = true;
+                        swt7.setChecked(true);
+                    }
+                }
+            });
+        }
+    }
 
     @Override
     public void onBottomSideUp() {
@@ -174,31 +334,33 @@ public class MainActivity extends AppCompatActivity
                     Sensey.getInstance().stopTiltDirectionDetection(this);
                 }
                 break;
+            case R.id.Switch13:
+                if (isChecked) {
+                    Sensey.getInstance().startStepDetection(this, this, StepDetectorUtil.MALE);
+                } else {
+                    Sensey.getInstance().stopStepDetection(this);
+                }
+                break;
+
+            case R.id.Switch14:
+                if (isChecked) {
+                    Sensey.getInstance().startPickupDeviceDetection(this);
+                } else {
+                    Sensey.getInstance().stopPickupDeviceDetection(this);
+                }
+                break;
+
+            case R.id.Switch15:
+                if (isChecked) {
+                    Sensey.getInstance().startScoopDetection(this);
+                } else {
+                    Sensey.getInstance().stopScoopDetection(this);
+                }
+                break;
 
             default:
                 // Do nothing
                 break;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull final String[] permissions,
-            @NonNull final int[] grantResults) {
-        if (requestCode == 100) {
-            RuntimePermissionUtil.onRequestPermissionsResult(grantResults, new RPResultListener() {
-                @Override
-                public void onPermissionGranted() {
-                    if (RuntimePermissionUtil.checkPermissonGranted(MainActivity.this, recordAudioPermission)) {
-                        hasRecordAudioPermission = true;
-                        swt7.setChecked(true);
-                    }
-                }
-
-                @Override
-                public void onPermissionDenied() {
-                    // do nothing
-                }
-            });
         }
     }
 
@@ -210,6 +372,16 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDark() {
         setResultTextView("Dark", false);
+    }
+
+    @Override
+    public void onDevicePickedUp() {
+        setResultTextView("Device Picked up Detected!", false);
+    }
+
+    @Override
+    public void onDevicePutDown() {
+        setResultTextView("Device Put down Detected!", false);
     }
 
     @Override
@@ -260,6 +432,11 @@ public class MainActivity extends AppCompatActivity
                 + angleInAxisY
                 + ",\nZ="
                 + angleInAxisZ, true);
+    }
+
+    @Override
+    public void onScooped() {
+        setResultTextView("Scoop Gesture Detected!", false);
     }
 
     @Override
@@ -314,119 +491,29 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    public void stepInformation(int noOfSteps, float distanceInMeter, int stepActivityType) {
+        String typeOfActivity;
+        switch (stepActivityType) {
+            case StepDetectorUtil.ACTIVITY_RUNNING:
+                typeOfActivity = "Running";
+                break;
+            case StepDetectorUtil.ACTIVITY_WALKING:
+                typeOfActivity = "Walking";
+                break;
+            default:
+                typeOfActivity = "Still";
+                break;
+        }
+        StringBuilder data = new StringBuilder("Steps: ").append(noOfSteps)
+                .append("\n")
+                .append("Distance: ")
+                .append(distanceInMeter)
+                .append("\n")
+                .append("Activity Type: ")
+                .append(typeOfActivity)
+                .append("\n");
 
-        hasRecordAudioPermission = RuntimePermissionUtil.checkPermissonGranted(this, recordAudioPermission);
-
-        // Init Sensey
-        Sensey.getInstance().init(this);
-
-        // Init UI controls,views and handler
-        handler = new Handler();
-        txtViewResult = findViewById(R.id.textView_result);
-
-        swt1 = findViewById(R.id.Switch1);
-        swt1.setOnCheckedChangeListener(this);
-        swt1.setChecked(false);
-
-        swt2 = findViewById(R.id.Switch2);
-        swt2.setOnCheckedChangeListener(this);
-        swt2.setChecked(false);
-
-        swt3 = findViewById(R.id.Switch3);
-        swt3.setOnCheckedChangeListener(this);
-        swt3.setChecked(false);
-
-        swt4 = findViewById(R.id.Switch4);
-        swt4.setOnCheckedChangeListener(this);
-        swt4.setChecked(false);
-
-        swt5 = findViewById(R.id.Switch5);
-        swt5.setOnCheckedChangeListener(this);
-        swt5.setChecked(false);
-
-        swt6 = findViewById(R.id.Switch6);
-        swt6.setOnCheckedChangeListener(this);
-        swt6.setChecked(false);
-
-        swt7 = findViewById(R.id.Switch7);
-        swt7.setOnCheckedChangeListener(this);
-        swt7.setChecked(false);
-
-        swt8 = findViewById(R.id.Switch8);
-        swt8.setOnCheckedChangeListener(this);
-        swt8.setChecked(false);
-
-        swt9 = findViewById(R.id.Switch9);
-        swt9.setOnCheckedChangeListener(this);
-        swt9.setChecked(false);
-
-        swt10 = findViewById(R.id.Switch10);
-        swt10.setOnCheckedChangeListener(this);
-        swt10.setChecked(false);
-
-        swt11 = findViewById(R.id.Switch11);
-        swt11.setOnCheckedChangeListener(this);
-        swt11.setChecked(false);
-
-        swt12 = findViewById(R.id.Switch12);
-        swt12.setOnCheckedChangeListener(this);
-        swt12.setChecked(false);
-
-        Button btnTouchEvent = findViewById(R.id.btn_touchevent);
-        btnTouchEvent.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(new Intent(MainActivity.this, TouchActivity.class));
-            }
-        });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // *** IMPORTANT ***
-        // Stop Sensey and release the context held by it
-        Sensey.getInstance().stop();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        // Stop Detections
-        Sensey.getInstance().stopShakeDetection(this);
-        Sensey.getInstance().stopFlipDetection(this);
-        Sensey.getInstance().stopOrientationDetection(this);
-        Sensey.getInstance().stopProximityDetection(this);
-        Sensey.getInstance().stopLightDetection(this);
-        Sensey.getInstance().stopWaveDetection(this);
-        Sensey.getInstance().stopSoundLevelDetection();
-        Sensey.getInstance().stopMovementDetection(this);
-        Sensey.getInstance().stopChopDetection(this);
-        Sensey.getInstance().stopWristTwistDetection(this);
-        Sensey.getInstance().stopRotationAngleDetection(this);
-        Sensey.getInstance().stopTiltDirectionDetection(this);
-
-        // Set the all switches to off position
-        swt1.setChecked(false);
-        swt2.setChecked(false);
-        swt3.setChecked(false);
-        swt4.setChecked(false);
-        swt5.setChecked(false);
-        swt6.setChecked(false);
-        swt7.setChecked(false);
-        swt8.setChecked(false);
-        swt9.setChecked(false);
-        swt10.setChecked(false);
-        swt11.setChecked(false);
-        swt12.setChecked(false);
-
-        // Reset the result view
-        resetResultInView(txtViewResult);
-
+        setResultTextView(data.toString(), true);
     }
 
     private void displayResultForTiltDirectionDetector(int direction, String axis) {
