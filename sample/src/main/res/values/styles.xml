@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources>
 
-    <style name="AppTheme" parent="AppTheme.Base"/>
+    <style name="AppTheme" parent="AppTheme.Base" />
 
     <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
 
@@ -28,6 +28,8 @@
         <!-- colorAccent is used as the default value for colorControlActivated
          which is used to tint widgets -->
         <item name="colorAccent">@color/accent</item>
+
+        <item name="android:background">@color/primary</item>
 
     </style>
 
