@@ -16,37 +16,29 @@
 
 apply plugin: 'com.android.library'
 
-android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+// Common configs
+apply from: "$rootProject.projectDir/common_config.gradle"
 
+android {
     defaultConfig {
-        minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode rootProject.ext.libVersionCode
-        versionName rootProject.ext.libVersionName
+        versionCode Versions.libraryCode
+        versionName Versions.libraryName
     }
-    buildTypes {
-        debug {
-            minifyEnabled false
-            debuggable true
-        }
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
         }
     }
 }
 
-
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // Testing
+    testImplementation Dependencies.mockito
+    testImplementation Dependencies.robolectric
 
-    testImplementation "junit:junit:$rootProject.ext.jUnitVersion"
-    testImplementation "org.mockito:mockito-core:$rootProject.ext.mockitoVersion"
-    testImplementation "org.robolectric:robolectric:$rootProject.ext.robolectricVersion"
-
-    implementation "com.android.support:support-compat:$rootProject.ext.supportLibVersion"
+    // Support
+    implementation Dependencies.supportCore
 }
 
 apply from: 'https://raw.githubusercontent.com/nisrulz/JCenter/master/nishant-config.gradle'
