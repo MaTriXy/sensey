@@ -21,13 +21,13 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SwitchCompat
 import android.util.Log
 import android.view.View
 import android.widget.CompoundButton
 import android.widget.CompoundButton.OnCheckedChangeListener
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import com.github.nisrulz.sensey.ChopDetector.ChopListener
 import com.github.nisrulz.sensey.FlipDetector.FlipListener
 import com.github.nisrulz.sensey.LightDetector.LightListener
@@ -46,17 +46,34 @@ import com.github.nisrulz.sensey.TiltDirectionDetector
 import com.github.nisrulz.sensey.TiltDirectionDetector.TiltDirectionListener
 import com.github.nisrulz.sensey.WaveDetector.WaveListener
 import com.github.nisrulz.sensey.WristTwistDetector.WristTwistListener
-import kotlinx.android.synthetic.main.activity_main.btn_touchevent
-import kotlinx.android.synthetic.main.activity_main.linearlayout_controls
-import kotlinx.android.synthetic.main.activity_main.switchMainActivitySound
-import kotlinx.android.synthetic.main.activity_main.textView_result
+import com.github.nisrulz.senseysample.databinding.ActivityMainBinding
+import com.github.nisrulz.senseysample.utils.RPResultListener
+import com.github.nisrulz.senseysample.utils.RuntimePermissionUtil
 import java.text.DecimalFormat
 
-class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener, FlipListener, LightListener, OrientationListener, ProximityListener, WaveListener, SoundLevelListener, MovementListener, ChopListener, WristTwistListener, RotationAngleListener, TiltDirectionListener, StepListener, ScoopListener, PickupDeviceListener {
+class MainActivity :
+    AppCompatActivity(),
+    OnCheckedChangeListener,
+    ShakeListener,
+    FlipListener,
+    LightListener,
+    OrientationListener,
+    ProximityListener,
+    WaveListener,
+    SoundLevelListener,
+    MovementListener,
+    ChopListener,
+    WristTwistListener,
+    RotationAngleListener,
+    TiltDirectionListener,
+    StepListener,
+    ScoopListener,
+    PickupDeviceListener {
+    private lateinit var binding: ActivityMainBinding
 
     private var hasRecordAudioPermission = false
     private val recordAudioPermission = permission.RECORD_AUDIO
-    private val LOGTAG = javaClass.canonicalName
+    private val logTag = javaClass.canonicalName
 
     private lateinit var handler: Handler
 
@@ -64,7 +81,11 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        hasRecordAudioPermission = RuntimePermissionUtil.checkPermissonGranted(this, recordAudioPermission)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        hasRecordAudioPermission =
+            RuntimePermissionUtil.checkPermissonGranted(this, recordAudioPermission)
 
         // Init UI controls,views and handler
         handler = Handler()
@@ -73,7 +94,7 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
         setAllSwitchesToFalseState()
         setOnCheckedChangeListenerForAllSwitches()
 
-        btn_touchevent.setOnClickListener {
+        binding.btnTouchevent.setOnClickListener {
             startActivity(Intent(this@MainActivity, TouchActivity::class.java))
         }
     }
@@ -88,13 +109,12 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
         setAllSwitchesToFalseState()
 
         // Reset the result view
-        resetResultInView(textView_result)
+        resetResultInView(binding.textViewResult)
 
         // *** IMPORTANT ***
         // Stop Sensey and release the context held by it
         Sensey.getInstance().stop()
     }
-
 
     override fun onResume() {
         super.onResume()
@@ -105,9 +125,9 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
 
     private fun setAllSwitchesToFalseState() {
         var v: View
-        for (i in 0 until linearlayout_controls.childCount) {
-            v = linearlayout_controls.getChildAt(i)
-            //do something with your child element
+        for (i in 0 until binding.linearlayoutControls.childCount) {
+            v = binding.linearlayoutControls.getChildAt(i)
+            // do something with your child element
             if (v is SwitchCompat) {
                 v.isChecked = false
             }
@@ -116,15 +136,14 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
 
     private fun setOnCheckedChangeListenerForAllSwitches() {
         var v: View
-        for (i in 0 until linearlayout_controls.childCount) {
-            v = linearlayout_controls.getChildAt(i)
-            //do something with your child element
+        for (i in 0 until binding.linearlayoutControls.childCount) {
+            v = binding.linearlayoutControls.getChildAt(i)
+            // do something with your child element
             if (v is SwitchCompat) {
                 v.setOnCheckedChangeListener(this)
             }
         }
     }
-
 
     private fun stopAllDetectors() {
         Sensey.getInstance()?.let {
@@ -146,21 +165,32 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>,
-                                            grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100) {
-            RuntimePermissionUtil.onRequestPermissionsResult(grantResults, object : RPResultListener {
-                override fun onPermissionDenied() {
-                    // do nothing
-                }
-
-                override fun onPermissionGranted() {
-                    if (RuntimePermissionUtil.checkPermissonGranted(this@MainActivity, recordAudioPermission)) {
-                        hasRecordAudioPermission = true
-                        switchMainActivitySound.isChecked = true
+            RuntimePermissionUtil.onRequestPermissionsResult(
+                grantResults,
+                object : RPResultListener {
+                    override fun onPermissionDenied() {
+                        // do nothing
                     }
-                }
-            })
+
+                    override fun onPermissionGranted() {
+                        if (RuntimePermissionUtil.checkPermissonGranted(
+                                this@MainActivity,
+                                recordAudioPermission,
+                            )
+                        ) {
+                            hasRecordAudioPermission = true
+                            binding.switchMainActivitySound.isChecked = true
+                        }
+                    }
+                },
+            )
         }
     }
 
@@ -169,96 +199,124 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
     }
 
     @SuppressLint("MissingPermission")
-    override fun onCheckedChanged(switchbtn: CompoundButton, isChecked: Boolean) {
-
+    override fun onCheckedChanged(
+        switchbtn: CompoundButton,
+        isChecked: Boolean,
+    ) {
         Sensey.getInstance()?.let {
             when (switchbtn.text) {
-                resources.getString(R.string.shake_gesture) -> if (isChecked) {
-                    it.startShakeDetection(10f, 2000, this)
-                } else {
-                    it.stopShakeDetection(this)
-                }
-                resources.getString(R.string.flip_gesture) -> if (isChecked) {
-                    it.startFlipDetection(this)
-                } else {
-                    it.stopFlipDetection(this)
-                }
-                resources.getString(R.string.orientation_gesture) -> if (isChecked) {
-                    it.startOrientationDetection(this)
-                } else {
-                    it.stopOrientationDetection(this)
-                }
-                resources.getString(R.string.proximity_gesture) -> if (isChecked) {
-                    it.startProximityDetection(this)
-                } else {
-                    it.stopProximityDetection(this)
-                }
-                resources.getString(R.string.light_gesture) -> if (isChecked) {
-                    it.startLightDetection(10f, this)
-                } else {
-                    it.stopLightDetection(this)
-                }
-
-                resources.getString(R.string.wave_gesture) -> if (isChecked) {
-                    it.startWaveDetection(this)
-                } else {
-                    it.stopWaveDetection(this)
-                }
-
-                resources.getString(R.string.sound_level_detection) -> if (isChecked) {
-                    if (hasRecordAudioPermission) {
-                        it.startSoundLevelDetection(this, this)
+                resources.getString(R.string.shake_gesture) ->
+                    if (isChecked) {
+                        it.startShakeDetection(10f, 2000, this)
                     } else {
-                        RuntimePermissionUtil.requestPermission(this, recordAudioPermission, 100)
+                        it.stopShakeDetection(this)
                     }
 
-                } else {
-                    it.stopSoundLevelDetection()
-                }
-                resources.getString(R.string.movement_detection) -> if (isChecked) {
-                    it.startMovementDetection(this)
-                } else {
-                    it.stopMovementDetection(this)
-                }
-                resources.getString(R.string.chop_detector) -> if (isChecked) {
-                    it.startChopDetection(30f, 500, this)
-                } else {
-                    it.stopChopDetection(this)
-                }
-                resources.getString(R.string.wrist_twist_detection) -> if (isChecked) {
-                    it.startWristTwistDetection(this)
-                } else {
-                    it.stopWristTwistDetection(this)
-                }
+                resources.getString(R.string.flip_gesture) ->
+                    if (isChecked) {
+                        it.startFlipDetection(this)
+                    } else {
+                        it.stopFlipDetection(this)
+                    }
 
-                resources.getString(R.string.rotation_angle_detection) -> if (isChecked) {
-                    it.startRotationAngleDetection(this)
-                } else {
-                    it.stopRotationAngleDetection(this)
-                }
+                resources.getString(R.string.orientation_gesture) ->
+                    if (isChecked) {
+                        it.startOrientationDetection(this)
+                    } else {
+                        it.stopOrientationDetection(this)
+                    }
 
-                resources.getString(R.string.tilt_direction_detection) -> if (isChecked) {
-                    it.startTiltDirectionDetection(this)
-                } else {
-                    it.stopTiltDirectionDetection(this)
-                }
-                resources.getString(R.string.step_detector) -> if (isChecked) {
-                    it.startStepDetection(this, this, StepDetectorUtil.MALE)
-                } else {
-                    it.stopStepDetection(this)
-                }
+                resources.getString(R.string.proximity_gesture) ->
+                    if (isChecked) {
+                        it.startProximityDetection(this)
+                    } else {
+                        it.stopProximityDetection(this)
+                    }
 
-                resources.getString(R.string.pickup_device_detector) -> if (isChecked) {
-                    it.startPickupDeviceDetection(this)
-                } else {
-                    it.stopPickupDeviceDetection(this)
-                }
+                resources.getString(R.string.light_gesture) ->
+                    if (isChecked) {
+                        it.startLightDetection(10f, this)
+                    } else {
+                        it.stopLightDetection(this)
+                    }
 
-                resources.getString(R.string.scoop_detector) -> if (isChecked) {
-                    it.startScoopDetection(this)
-                } else {
-                    it.stopScoopDetection(this)
-                }
+                resources.getString(R.string.wave_gesture) ->
+                    if (isChecked) {
+                        it.startWaveDetection(this)
+                    } else {
+                        it.stopWaveDetection(this)
+                    }
+
+                resources.getString(R.string.sound_level_detection) ->
+                    if (isChecked) {
+                        if (hasRecordAudioPermission) {
+                            it.startSoundLevelDetection(this, this)
+                        } else {
+                            RuntimePermissionUtil.requestPermission(
+                                this,
+                                recordAudioPermission,
+                                100,
+                            )
+                        }
+                    } else {
+                        it.stopSoundLevelDetection()
+                    }
+
+                resources.getString(R.string.movement_detection) ->
+                    if (isChecked) {
+                        it.startMovementDetection(this)
+                    } else {
+                        it.stopMovementDetection(this)
+                    }
+
+                resources.getString(R.string.chop_detector) ->
+                    if (isChecked) {
+                        it.startChopDetection(30f, 500, this)
+                    } else {
+                        it.stopChopDetection(this)
+                    }
+
+                resources.getString(R.string.wrist_twist_detection) ->
+                    if (isChecked) {
+                        it.startWristTwistDetection(this)
+                    } else {
+                        it.stopWristTwistDetection(this)
+                    }
+
+                resources.getString(R.string.rotation_angle_detection) ->
+                    if (isChecked) {
+                        it.startRotationAngleDetection(this)
+                    } else {
+                        it.stopRotationAngleDetection(this)
+                    }
+
+                resources.getString(R.string.tilt_direction_detection) ->
+                    if (isChecked) {
+                        it.startTiltDirectionDetection(this)
+                    } else {
+                        it.stopTiltDirectionDetection(this)
+                    }
+
+                resources.getString(R.string.step_detector) ->
+                    if (isChecked) {
+                        it.startStepDetection(this, this, StepDetectorUtil.MALE)
+                    } else {
+                        it.stopStepDetection(this)
+                    }
+
+                resources.getString(R.string.pickup_device_detector) ->
+                    if (isChecked) {
+                        it.startPickupDeviceDetection(this)
+                    } else {
+                        it.stopPickupDeviceDetection(this)
+                    }
+
+                resources.getString(R.string.scoop_detector) ->
+                    if (isChecked) {
+                        it.startScoopDetection(this)
+                    } else {
+                        it.stopScoopDetection(this)
+                    }
 
                 else -> {
                     // Do nothing
@@ -315,8 +373,13 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
         setResultTextView("Right Side UP", false)
     }
 
-    override fun onRotation(angleInAxisX: Float, angleInAxisY: Float, angleInAxisZ: Float) {
-        val data = "Rotation in Axis Detected(deg):\nX=$angleInAxisX,\nY=$angleInAxisY,\nZ=$angleInAxisZ"
+    override fun onRotation(
+        angleInAxisX: Float,
+        angleInAxisY: Float,
+        angleInAxisZ: Float,
+    ) {
+        val data =
+            "Rotation in Axis Detected(deg):\nX=$angleInAxisX,\nY=$angleInAxisY,\nZ=$angleInAxisZ"
         setResultTextView(data, true)
     }
 
@@ -365,22 +428,31 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
         setResultTextView("Wrist Twist Detected!", false)
     }
 
-    override fun stepInformation(noOfSteps: Int, distanceInMeter: Float, stepActivityType: Int) {
-        val typeOfActivity: String = when (stepActivityType) {
-            StepDetectorUtil.ACTIVITY_RUNNING -> "Running"
-            StepDetectorUtil.ACTIVITY_WALKING -> "Walking"
-            else -> "Still"
-        }
+    override fun stepInformation(
+        noOfSteps: Int,
+        distanceInMeter: Float,
+        stepActivityType: Int,
+    ) {
+        val typeOfActivity: String =
+            when (stepActivityType) {
+                StepDetectorUtil.ACTIVITY_RUNNING -> "Running"
+                StepDetectorUtil.ACTIVITY_WALKING -> "Walking"
+                else -> "Still"
+            }
         val data = "Steps: $noOfSteps\nDistance: $distanceInMeter m\nActivity Type: $typeOfActivity"
         setResultTextView(data, true)
     }
 
-    private fun displayResultForTiltDirectionDetector(direction: Int, axis: String) {
-        val dir: String = if (direction == TiltDirectionDetector.DIRECTION_CLOCKWISE) {
-            "ClockWise"
-        } else {
-            "AntiClockWise"
-        }
+    private fun displayResultForTiltDirectionDetector(
+        direction: Int,
+        axis: String,
+    ) {
+        val dir: String =
+            if (direction == TiltDirectionDetector.DIRECTION_CLOCKWISE) {
+                "ClockWise"
+            } else {
+                "AntiClockWise"
+            }
         setResultTextView("Tilt in $axis Axis: $dir", false)
     }
 
@@ -388,18 +460,19 @@ class MainActivity : AppCompatActivity(), OnCheckedChangeListener, ShakeListener
         handler.postDelayed({ txt?.text = getString(R.string.results_show_here) }, 3000)
     }
 
-    private fun setResultTextView(text: String, realtime: Boolean) {
-        if (textView_result != null) {
-            runOnUiThread {
-                textView_result.text = text
-                if (!realtime) {
-                    resetResultInView(textView_result)
-                }
+    private fun setResultTextView(
+        text: String,
+        realtime: Boolean,
+    ) {
+        runOnUiThread {
+            binding.textViewResult.text = text
+            if (!realtime) {
+                resetResultInView(binding.textViewResult)
             }
+        }
 
-            if (BuildConfig.DEBUG) {
-                Log.d(LOGTAG, text)
-            }
+        if (BuildConfig.DEBUG) {
+            Log.d(logTag, text)
         }
     }
 }
