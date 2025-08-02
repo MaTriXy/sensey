@@ -299,7 +299,19 @@ class MainActivity :
 
                 resources.getString(R.string.step_detector) ->
                     if (isChecked) {
-                        it.startStepDetection(this, this, StepDetectorUtil.MALE)
+                        if (RuntimePermissionUtil.checkPermissonGranted(
+                                this@MainActivity,
+                                permission.ACTIVITY_RECOGNITION,
+                            )
+                        ) {
+                            it.startStepDetection(this, this, StepDetectorUtil.MALE)
+                        } else {
+                            RuntimePermissionUtil.requestPermission(
+                                this,
+                                permission.ACTIVITY_RECOGNITION,
+                                0,
+                            )
+                        }
                     } else {
                         it.stopStepDetection(this)
                     }
