@@ -19,6 +19,8 @@
 
     <!-- Required for Sound Level Detector only -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Required for Step Detector only -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <application
         android:icon="@mipmap/ic_launcher"
